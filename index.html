@@ -1,76 +1,195 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PORTAFOLIO</title>
-    <link href="style.css" rel="stylesheet">
-
+    <title>Debate Filosófico - Chat</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
+    <div class="container">
+        <header>
+            <h1>Debate Filosófico: Vida despues de la Muerte</h1>
+            <p class="subtitle">Un diálogo entre la visión científica y la espiritual</p>
+            <p class="description">
+                Este debate simulado explora las diferentes perspectivas sobre la naturaleza de la conciencia, 
+                la vida después de la muerte y el significado de la existencia, desde dos enfoques fundamentales: 
+                el científico-materialista y el espiritual.
+            </p>
+        </header>
 
-    <div class="contenedorSuperior">
-        <h1>NATALIA HERNÁNDEZ</h1>
-        <p>Bienvenido a mi portafolio </p>
-    </div>
-
-    <div class="contenedorHijo">
-        <h2>Paginas proyecto 🫂 </h2>
-
-        <div class="paginas">
-            <div class="pagina1">
-                <h3>Pagina de Quien Soy</h3>
-                <p>Proyecto 1. </p>
-                <br>
-                <a href="./quienSoy/codigo.html"><button id="botton2">Ir a la pagina </button></a>
+        <div class="participants">
+            <div class="participant">
+                <div style="width:80px;height:80px;border-radius:50%;background:#E74C3C;display:flex;align-items:center;justify-content:center;color:white;font-size:2em;margin:0 auto 10px;">🔬</div>
+                <h3>Stephen Hawking</h3>
+                <p>Físico teórico y cosmólogo</p>
+                <p>Perspectiva científica-materialista</p>
             </div>
-            <div class="pagina2">
-                <h3>Hoja de vida</h3>
-                <p>Proyecto 2.</p>
-                <br>
-                <a href="./hoja/Aindiex.html"><button id="botton2">Ir a la pagina </button></a>
+            <div class="participant">
+                <div style="width:80px;height:80px;border-radius:50%;background:#16A085;display:flex;align-items:center;justify-content:center;color:white;font-size:2em;margin:0 auto 10px;">☸️</div>
+                <h3>Dalai Lama</h3>
+                <p>Líder espiritual tibetano</p>
+                <p>Perspectiva budista-espiritual</p>
             </div>
-            <div class="pagina3">
-                <h3>Electrodomesticos</h3>
-                <p>Proyecto 3.</p>
-                <br>
-<a href="./Electrodomesticos/index.html"><button id="botton4">Ir a la pagina </button></a>
-            </div>
-            <div class="pagina4">
-                <h3>Calculadora</h3>
-                <p>Proyecto 4.</p>
-                <br>
-                <a href="./CalculadoraAlex/index.html"><button id="botton4">Ir a la pagina </button></a>
-            </div>
-
-             <div class="pagina5">
-                <h3>Lugares del Mundo</h3>
-                <p>Proyecto 5.</p>
-                <br>
-<a href="./ProyectoJson/index.html"><button id="botton5">Ir a la pagina </button></a>
-            </div>
-            <div class="pagina6">
-                <h3>Reservas Restaurante</h3>
-                <p>Proyecto 6.</p>
-                <br>
-                <a href="./restaurante2/reservas2.html"><button id="botton6">Ir a la pagina </button></a>
-            </div>
-
-                        <div class="pagina7">
-                <h3>...
-                    
-                </h3>
-                <p>Proyecto 7.</p>
-                <br>
-                <a href=""><button id="botton6">Ir a la pagina </button></a>
-            </div>
-
         </div>
 
+        <div class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+                <div class="message system">
+                    <div class="message-content">
+                        Haz clic en "Iniciar Debate" para comenzar la conversación...
+                    </div>
+                </div>
+            </div>
+        </div>
 
+        <div class="controls">
+            <button id="startDebateBtn" class="debate-button">
+                🎭 Iniciar Debate
+            </button>
+            <div class="config-controls">
+                <label for="roundsInput">Rondas del debate:</label>
+                <input type="number" id="roundsInput" value="6" min="2" max="20">
+            </div>
+        </div>
     </div>
-</body>
 
+    <script type="module">
+        import { GoogleGenAI } from "https://esm.run/@google/genai";
+
+        const ai = new GoogleGenAI({ 
+            apiKey: "AIzaSyCUgLZXuMkAPbqt4pgnOjp8Qp-BIuUc1Cs" 
+        });
+
+        const chatMessages = document.getElementById('chatMessages');
+        const startButton = document.getElementById('startDebateBtn');
+        const roundsInput = document.getElementById('roundsInput');
+
+        // Función para obtener el número de rondas
+        function getRondasMaximas() {
+            return parseInt(roundsInput.value) || 6;
+        }
+
+        // Función para agregar mensajes al chat
+        function addMessage(sender, text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const senderName = sender === 'stephen' ? '🔬 Stephen Hawking' : 
+                              sender === 'dalai' ? '☸️ Dalai Lama' : '💬 Sistema';
+            
+            messageDiv.innerHTML = `
+                <div class="message-header">${senderName}</div>
+                <div class="message-content">${text}</div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Variables para controlar el debate
+        let debateEnCurso = false;
+        let rondasMaximas = 6; // Número de rondas del debate
+        let conversacion = []; // Array para guardar la conversación
+
+        // Función principal del debate
+        async function iniciarDebate() {
+            if (debateEnCurso) {
+                detenerDebate();
+                return;
+            }
+
+            debateEnCurso = true;
+            startButton.innerHTML = '⏸️ Detener Debate';
+            conversacion = []; // Limpiar conversación anterior
+
+            try {
+                // Limpiar mensaje inicial
+                chatMessages.innerHTML = '';
+
+                addMessage('system', '🎭 Iniciando debate filosófico continuo...');
+
+                
+                // Primera respuesta de Stephen Hawking
+                let stephenResponse = await obtenerRespuesta('stephen', 
+                    "Eres Stephen Hawking. Responde brevemente (máximo 150 caracteres): ¿Qué hay después de la muerte según tu visión científica materialista?"
+                );
+                conversacion.push({speaker: 'stephen', text: stephenResponse});
+                addMessage('stephen', stephenResponse);
+
+                // Primera respuesta del Dalai Lama
+                let dalaiResponse = await obtenerRespuesta('dalai',
+                    "Eres el Dalai Lama. Responde brevemente (máximo 150 caracteres): ¿Qué hay después de la muerte según tu visión espiritual?"
+                );
+                conversacion.push({speaker: 'dalai', text: dalaiResponse});
+                addMessage('dalai', dalaiResponse);
+
+                // Bucle de debate continuo
+                for (let ronda = 2; ronda < getRondasMaximas() && debateEnCurso; ronda++) {
+                    // Esperar un momento entre rondas
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    if (!debateEnCurso) break; // Verificar si se detuvo el debate
+
+                    // Stephen responde al Dalai Lama
+                    addMessage('system', '🔬 Stephen Hawking está pensando...');
+                    stephenResponse = await obtenerRespuesta('stephen',
+                        `Eres Stephen Hawking. El Dalai Lama acaba de decir: "${dalaiResponse}". Responde con argumentos científicos (máximo 150 caracteres).`
+                    );
+                    conversacion.push({speaker: 'stephen', text: stephenResponse});
+                    addMessage('stephen', stephenResponse);
+
+                    if (!debateEnCurso) break;
+
+                    // Esperar un momento
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+
+                    // Dalai Lama responde a Stephen
+                    addMessage('system', '☸️ Dalai Lama está meditando...');
+                    dalaiResponse = await obtenerRespuesta('dalai',
+                        `Eres el Dalai Lama. Stephen Hawking acaba de decir: "${stephenResponse}". Responde desde la espiritualidad (máximo 150 caracteres).`
+                    );
+                    conversacion.push({speaker: 'dalai', text: dalaiResponse});
+                    addMessage('dalai', dalaiResponse);
+                }
+
+                if (debateEnCurso) {
+                    addMessage('system', '🎯 Debate completado después de ' + getRondasMaximas() + ' rondas.');
+                }
+
+            } catch (error) {
+                addMessage('system', `❌ Error: ${error.message}`);
+            } finally {
+                detenerDebate();
+            }
+        }
+
+        // Función para obtener respuesta de la IA
+        async function obtenerRespuesta(personaje, prompt) {
+            const response = await ai.models.generateContent({
+                model: "gemini-2.5-flash",
+                contents: [{
+                    "role": "user",
+                    "parts": [{
+                        "text": prompt
+                    }]
+                }]
+            });
+            return response.text.substring(0, 150);
+        }
+
+        // Función para detener el debate
+        function detenerDebate() {
+            debateEnCurso = false;
+            startButton.innerHTML = '🎭 Iniciar Debate';
+            startButton.disabled = false;
+            if (conversacion.length > 0) {
+                addMessage('system', '⏸️ Debate detenido. Puedes iniciar uno nuevo.');
+            }
+        }
+
+        // Conectar el botón a la función
+        startButton.addEventListener('click', iniciarDebate);
+    </script>
+</body>
 </html>
